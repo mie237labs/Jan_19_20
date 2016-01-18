@@ -21,7 +21,7 @@ This document itself was written in R markdown and contains hints and examples o
 
 For the first and last time I'll tell you the textbook data will always be available at https://github.com/mie237labs/textbook_data
 
-It's up to you how you manage the location of textbook datasets, but I would recommend for each lab you copy the required files to the fresh new directory and Rstudio project that you'll start for each lab. 
+It's up to you how you manage the location of textbook datasets, but I would recommend for each lab you copy the required files to the fresh new directory and RStudio project that you'll start for each lab. 
 
 Note that the textbook datasets are mostly very small and uninteresting, so I'll try to find some other datasets to work with as well from time to time. 
 
@@ -72,7 +72,7 @@ library(knitr)
 ```
 
 
-Let's look at the data for question 9.40 from the book. We did this one in class. I will write a little "report" as I might were I actually analysing this dataset for some reason. The pdf of the lab doesn't show all the underlying code. You'll need to look at the R markdown source for hints.
+Let's look at the data for question 9.40 from the book. We did this one in class. I will write a little "report" as I might were I actually analyzing this dataset for some reason. The pdf of the lab doesn't show all the underlying code. You'll need to look at the R markdown source for hints.
 
 ### Example "report" using 9.40 data
 
@@ -111,7 +111,7 @@ nitro %>%
   labs(title = "Stem weights")
 ```
 
-Here is the analysis for the differene in mean weights between the groups. No equal variance assumption is being made. 
+Here is the analysis for the difference in mean weights between the groups. No equal variance assumption is being made. 
 
 ```{r, echo=FALSE}
 # this saves the result in the object called nitro_t.test. There is nothing to
