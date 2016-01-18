@@ -1,0 +1,140 @@
+---
+title: "MIE237 January 19-20 Labs"
+author: "Neil Montgomery"
+date: "January 17, 2016"
+output: pdf_document
+---
+# What you will do in this lab
+
+In this lab you will use some textbook datasets to make small "reports" in R markdown. Read the question to understand the background of the data, but otherwise don't bother with what the book asks. Instead do what I ask here.
+
+1. 9.40 - produce a 95% confidence interval for the difference between the groups, making no equal variance assumption. *I did this one for you as an example.*
+2. 9.46 - perform the hypothesis test with the null hypothesis that there is no difference between the groups, making no equal variance assumption.
+3. 9.49 - produce a 95% confidence interval for the difference between the two groups, assuming equal variances.
+4. 9.95 - perform the hypothesis test with the null hypothesis that there is no difference between the groups, assuming equal variances.
+
+This document itself was written in R markdown and contains hints and examples of how to construct your own reports.
+
+# Preliminaries
+
+## Textbook Data
+
+For the first and last time I'll tell you the textbook data will always be available at https://github.com/mie237labs/textbook_data
+
+It's up to you how you manage the location of textbook datasets, but I would recommend for each lab you copy the required files to the fresh new directory and Rstudio project that you'll start for each lab. 
+
+Note that the textbook datasets are mostly very small and uninteresting, so I'll try to find some other datasets to work with as well from time to time. 
+
+## Working with data in R
+
+R is a full-fledged programming language so it's always possible to work with data at a very low level, but it's much easier to use packages that have been written to make working with data easier. These are the packages I use most often (especially the first three).
+
+Package | Reason | More information
+--------|----------------------------------|------------------------------
+`dplyr` | filtering, grouping, summarizing | [Introduction to dplyr](https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html)
+`ggplot2` | make nice plots | [ggplot2](http://ggplot2.org/)
+`rio` | data import and export | [Import, Export, and Convert Data Files](https://cran.r-project.org/web/packages/rio/vignettes/rio.html)
+`tidyr` | convert data to proper structure | [Introducing tidyr](http://blog.rstudio.org/2014/07/22/introducing-tidyr/)
+`lubridate` | working with dates | [Do more with dates and times in R...](https://cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html)
+
+You'll need to install the packages (only once) before using them. 
+
+You'll start to pick up the usage by example in the lecture notes and in the source files of the labs. 
+
+## R markdown
+
+I suggest completing each lab in the form of a report written in R markdown, for practice since your assignments will have to be written that way. When you open a new R markdown document a skeleton example document comes up. You can also examine the R markdown documents I produce to make slides and lab instructions for more ideas.
+
+Something to remember about R markdown. I will write the R code in the document and run the code, so that objects and things appear in the working environment for playing around with. But when it comes time to actually render the document, all the R code in the document is run in a new process independently of the working environment. 
+
+One additional package that I use in R markdown documents is the `knitr` package, mainly for the `kable` function that makes nice looking tables. 
+
+# "Two-sample" $t$ procedures
+
+The analysis of two independent numerical samples is ultimately very straightforward. You need to:
+
+1. Perform some exploratory data analysis (numerical and graphical summaries).
+2. Do the calculations (such as using the `t.test` function in R).
+3. Verify model assumptions.
+4. Report on the results, which might be a confidence interval or a hypothesis test.
+
+## Fully worked example
+
+```{r, echo=FALSE, message=FALSE}
+# I usually import all the necessary packages in one code chunk at the beginning
+# with echo and message set to FALSE so that the document isn't cluttered with 
+# anything irrelevant.
+library(rio)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+```
+
+
+Let's look at the data for question 9.40 from the book. We did this one in class. I will write a little "report" as I might were I actually analysing this dataset for some reason. The pdf of the lab doesn't show all the underlying code. You'll need to look at the R markdown source for hints.
+
+### Example "report" using 9.40 data
+
+This dataset concerns stem weights for trees that have been exposed, or not, to nitrogen.
+
+```{r, echo=FALSE}
+# First I would import the data and do any initial alterations to it.
+nitro_raw <- import("Ex09.40.txt")
+
+# Not a "real" dataset. We want rows as records and columns as variables. We
+# want the columns to have suitable names.
+nitro <- gather(nitro_raw, key = "nitrogen", value = "weight")
+
+# Note that the gather function will assume "equal sample sizes" by default and 
+# will add enough NA (missing) to maintain this assumption, which could end up 
+# with unintended consequences in subsequent analyses (such as when you do 
+# question 9.46). This can be avoided by using the "na.rm = TRUE" setting when
+# using gather.
+```
+
+Here is a numerical summary of the dataset and side-by-side boxplots of weights for the two groups of trees.
+
+```{r, echo=FALSE}
+# Use dplyr functions to create summaries within each group. 
+nitro %>% 
+  group_by(nitrogen) %>% 
+  summarize(n = n(), mean = mean(weight), sd = sd(weight)) -> nitro_summary
+
+# Use the kable function from knitr to produce a nice looking table
+kable(nitro_summary)
+
+# Side by side boxplots using ggplot2
+nitro %>% 
+  ggplot(aes(x = nitrogen, y = weight)) + 
+  geom_boxplot() + 
+  labs(title = "Stem weights")
+```
+
+Here is the analysis for the differene in mean weights between the groups. No equal variance assumption is being made. 
+
+```{r, echo=FALSE}
+# this saves the result in the object called nitro_t.test. There is nothing to
+# appear in the document...
+nitro %>% 
+  t.test(weight ~ nitrogen, data = .) -> nitro_t.test
+# ...so I just put the object name here to make sure it gets printed.
+nitro_t.test
+```
+
+The 95% confidence interval is [`r round(nitro_t.test$conf.int[1], 3)`, `r round(nitro_t.test$conf.int[2], 3)`]. The following normal quantile plots of the groups don't show evidence of a serious deviation from normality, although it is hard to tell with such small sample sizes.
+
+```{r, echo=FALSE}
+# Side by side normal quantile plots. This looks like a strange way to make this
+# plot. You'll get used to it.
+nitro %>% 
+  ggplot(aes(sample = weight)) + # "Sample quantiles" from the weight variable
+  facet_grid(nitrogen ~ ., scale = "free_y") + # One plot per group
+  stat_qq()
+```
+
+
+
+
+
+
